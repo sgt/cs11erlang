@@ -10,12 +10,18 @@ is_divisible_opt(N, X) when X*X > N -> false;
 is_divisible_opt(N, X) ->
     N rem X == 0.
 
+is_prime_recur(1, _) -> true;
+is_prime_recur(2, _) -> true;
+is_prime_recur(_, 1) -> true;
+is_prime_recur(N, X) when N > 2, X > 1 ->
+    case is_divisible_opt(N, X) of
+        true -> false; % not a prime
+        _ -> is_prime_recur(N, X-1)
+    end.
+            
 %% is N a prime number?
-is_prime(1) -> true;
-is_prime(2) -> true;
-is_prime(N) when N > 2 ->
-    Seq = lists:seq(2, N-1),
-    not lists:any(fun(X) -> is_divisible_opt(N, X) end, Seq).
+is_prime(N) ->
+    is_prime_recur(N, N-1).
 
 prime_factors_recur(1, Acc) -> Acc;
 prime_factors_recur(N, Acc) when N > 1 ->
