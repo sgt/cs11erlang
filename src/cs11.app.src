@@ -1,0 +1,12 @@
+{application, cs11,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { cs11_app, []}},
+  {env, []}
+ ]}.
