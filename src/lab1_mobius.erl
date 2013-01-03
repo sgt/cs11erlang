@@ -1,35 +1,57 @@
 -module(lab1_mobius).
--export([is_prime/1, prime_factors/1]).
+-export([is_prime/1, prime_factors/1, find_square_multiples/2]).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
-%%is_divisible(N, X) when X*X > N -> false;
-is_divisible(N, X) ->
+%% an optimised is_divisible that runs checks only on X < sqrt(N)
+is_divisible_opt(N, X) when X*X > N -> false;
+is_divisible_opt(N, X) ->
     N rem X == 0.
 
+%% is N a prime number?
 is_prime(1) -> true;
 is_prime(2) -> true;
 is_prime(N) when N > 2 ->
-    L = [X || X <- lists:seq(2, N-1), is_divisible(N, X)],
-    io:format("~p ~w~n", [N, L]),
-    length(L) == 0.
+    Seq = lists:seq(2, N-1),
+    not lists:any(fun(X) -> is_divisible_opt(N, X) end, Seq).
 
-prime_factors_recur(1, Acc) -> 
-    Acc;
+prime_factors_recur(1, Acc) -> Acc;
 prime_factors_recur(N, Acc) when N > 1 ->
-    case is_prime(N) of
+    L = lists:dropwhile(fun(X) -> not is_prime(X) or (N rem X =/= 0) end,
+                        lists:seq(2, N)),
+    [Divisor|_] = L,
+    prime_factors_recur(N div Divisor, [Divisor|Acc]).
+
+%% list prime factors of N
+prime_factors(1) -> [1];
+prime_factors(N) ->
+    lists:reverse(prime_factors_recur(N, [])).
+
+is_square_multiple(N) ->
+    Factors = prime_factors(N),
+    UniqueFactors = sets:to_list(sets:from_list(Factors)),
+    length(Factors) =/= length(UniqueFactors).
+
+count_square_multiples(N, MaxN) ->
+    L = lists:takewhile(fun(X) -> is_square_multiple(X) end, lists:seq(N, MaxN)),
+    length(L).
+
+find_square_multiples_recur(Start, MaxN, _Count) when Start > MaxN ->
+    fail;
+find_square_multiples_recur(Start, MaxN, Count) ->
+    ActualCount = count_square_multiples(Start, MaxN),
+    case ActualCount >= Count of
         true ->
-            [N|Acc];
+            Start;
         _ ->
-            L = [X || X <- lists:seq(N-1, 2, -1), is_prime(X) and is_divisible(N, X)],
-            [Divisor|_] = L,
-            prime_factors_recur(N div Divisor, [Divisor|Acc])
+            Skip = max(1, ActualCount),
+            find_square_multiples_recur(Start + Skip, MaxN, Count)
     end.
 
-prime_factors(N) ->
-    prime_factors_recur(N, []).
+find_square_multiples(Count, MaxN) ->
+    find_square_multiples_recur(1, MaxN, Count).
 
 -ifdef(TEST).
 
@@ -41,8 +63,20 @@ is_prime_test() ->
     ].
 
 prime_factors_test() ->
-    [?assertEqual([2], prime_factors(2)),
+    [?assertEqual([1], prime_factors(1)),
+     ?assertEqual([2], prime_factors(2)),
      ?assertEqual([2,3], prime_factors(6)),
      ?assertEqual([2,2,2,3], prime_factors(24))
     ].
+
+is_square_multiple_test() ->
+    [?assert(is_square_multiple(24)),
+     ?assertNot(is_square_multiple(15))
+    ].
+
+find_square_multiples_test() ->
+    [?assertEqual(48, find_square_multiples(3, 50)),
+     ?assertEqual(fail, find_square_multiples(3, 20))
+    ].
+
 -endif.
