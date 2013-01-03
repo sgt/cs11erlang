@@ -45,9 +45,17 @@ is_square_multiple(N) ->
     UniqueFactors = sets:to_list(sets:from_list(Factors)),
     length(Factors) =/= length(UniqueFactors).
 
+count_square_multiples_recur(N, MaxN, Acc) when N > MaxN -> Acc;
+count_square_multiples_recur(N, MaxN, Acc) ->
+    case is_square_multiple(N) of
+        false ->
+            Acc;
+        _ ->
+            count_square_multiples_recur(N+1, MaxN, Acc+1)
+    end.
+
 count_square_multiples(N, MaxN) ->
-    L = lists:takewhile(fun(X) -> is_square_multiple(X) end, lists:seq(N, MaxN)),
-    length(L).
+    count_square_multiples_recur(N, MaxN, 0).
 
 find_square_multiples_recur(Start, MaxN, _Count) when Start > MaxN ->
     fail;
@@ -83,6 +91,12 @@ prime_factors_test() ->
 is_square_multiple_test() ->
     [?assert(is_square_multiple(24)),
      ?assertNot(is_square_multiple(15))
+    ].
+
+count_square_multiples_test() ->
+    [?assertEqual(1, count_square_multiples(4, 5)),
+     ?assertEqual(0, count_square_multiples(1, 5)),
+     ?assertEqual(1, count_square_multiples(4, 4))
     ].
 
 find_square_multiples_test() ->
