@@ -5,16 +5,11 @@
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
-%% an optimised is_divisible that runs checks only on X < sqrt(N)
-is_divisible_opt(N, X) when X*X > N -> false;
-is_divisible_opt(N, X) ->
-    N rem X == 0.
-
 is_prime_recur(1, _) -> true;
 is_prime_recur(2, _) -> true;
 is_prime_recur(_, 1) -> true;
 is_prime_recur(N, X) when N > 2, X > 1 ->
-    case is_divisible_opt(N, X) of
+    case N rem X == 0 of
         true ->
             false; % not a prime
         _ ->
@@ -23,7 +18,7 @@ is_prime_recur(N, X) when N > 2, X > 1 ->
             
 %% is N a prime number?
 is_prime(N) ->
-    is_prime_recur(N, N-1).
+    is_prime_recur(N, trunc(math:sqrt(N))).
 
 prime_factors_recur(1, _X, Acc) -> Acc;
 prime_factors_recur(N, X, Acc) when N > 1, X =< N ->
@@ -69,6 +64,7 @@ find_square_multiples_recur(Start, MaxN, Count) ->
             find_square_multiples_recur(Start + Skip, MaxN, Count)
     end.
 
+%% TODO: find_square_multiples(6, 30000) still takes a lot of time, not sure how to optimise it further
 find_square_multiples(Count, MaxN) ->
     find_square_multiples_recur(1, MaxN, Count).
 
