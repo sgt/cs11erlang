@@ -7,18 +7,18 @@
 
 is_prime_recur(1, _) -> true;
 is_prime_recur(2, _) -> true;
-is_prime_recur(_, 1) -> true;
+is_prime_recur(N, X) when X * X > N -> true;
 is_prime_recur(N, X) when N > 2, X > 1 ->
     case N rem X == 0 of
         true ->
             false; % not a prime
         _ ->
-            is_prime_recur(N, X-1)
+            is_prime_recur(N, X+1)
     end.
             
 %% is N a prime number?
 is_prime(N) ->
-    is_prime_recur(N, trunc(math:sqrt(N))).
+    is_prime_recur(N, 2).
 
 prime_factors_recur(1, _X, Acc) -> Acc;
 prime_factors_recur(N, X, Acc) when N > 1, X =< N ->
