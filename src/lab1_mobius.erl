@@ -15,25 +15,30 @@ is_prime_recur(2, _) -> true;
 is_prime_recur(_, 1) -> true;
 is_prime_recur(N, X) when N > 2, X > 1 ->
     case is_divisible_opt(N, X) of
-        true -> false; % not a prime
-        _ -> is_prime_recur(N, X-1)
+        true ->
+            false; % not a prime
+        _ ->
+            is_prime_recur(N, X-1)
     end.
             
 %% is N a prime number?
 is_prime(N) ->
     is_prime_recur(N, N-1).
 
-prime_factors_recur(1, Acc) -> Acc;
-prime_factors_recur(N, Acc) when N > 1 ->
-    L = lists:dropwhile(fun(X) -> not is_prime(X) or (N rem X =/= 0) end,
-                        lists:seq(2, N)),
-    [Divisor|_] = L,
-    prime_factors_recur(N div Divisor, [Divisor|Acc]).
+prime_factors_recur(1, _X, Acc) -> Acc;
+prime_factors_recur(N, X, Acc) when N > 1, X =< N ->
+    case is_prime(X) and (N rem X == 0) of
+        true ->
+            %% found a factor, reset X to 2 and go up again
+            prime_factors_recur(N div X, 2, [X|Acc]);
+        _ ->
+            prime_factors_recur(N, X+1, Acc)
+    end.
 
 %% list prime factors of N
 prime_factors(1) -> [1];
 prime_factors(N) ->
-    lists:reverse(prime_factors_recur(N, [])).
+    lists:reverse(prime_factors_recur(N, 2, [])).
 
 is_square_multiple(N) ->
     Factors = prime_factors(N),
